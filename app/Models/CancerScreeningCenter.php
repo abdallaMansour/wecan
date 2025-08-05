@@ -6,9 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Traits\Favoritable;
+
 class CancerScreeningCenter extends Model
 {
-   use HasFactory,Favoritable;
+    use HasFactory, Favoritable;
 
     protected $appends = ['hospital_logo_path'];
 

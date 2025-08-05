@@ -3,8 +3,17 @@
 return [
     'administrators' => 'المبادرون',
     'administrator' => 'المبادر',
+
+    // Cancer
+    'cancer_name_ar' => 'اسم مرض السرطان (بالعربية)',
+    'cancer_name_en' => 'اسم مرض السرطان (بالإنجليزية)',
+    'cancer_type' => 'نوع مرض السرطان',
+    'cancer_types' => 'أنواع مرض السرطان',
+    'cancers' => 'امراض السرطان',
     'cancer_screening_centers' => 'مراكز فحص السرطان',
     'cancer_screening_center' => 'مركز فحص السرطان',
+    'cancer_image' => 'صورة مرض السرطان',
+
     'contact_us' => 'التواصل معنا',
     'countries' => 'الدول',
     'country' => 'الدولة',
