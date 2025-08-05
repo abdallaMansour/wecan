@@ -2,24 +2,25 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
-use App\Models\Country;
-use App\Models\User;
-use App\Models\Hospital;
-
 use Filament\Forms;
-use Filament\Forms\Components\FileUpload;
+use App\Models\User;
+use Filament\Tables;
+use App\Models\Cancer;
+use App\Models\Country;
+
+use App\Models\Hospital;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use Filament\Resources\Resource;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Form;
-use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
+use Filament\Forms\Components\FileUpload;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\UserResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\Resources\UserResource\RelationManagers;
 
 class UserResource extends Resource
 {
@@ -62,7 +63,12 @@ class UserResource extends Resource
                             ->unique(ignoreRecord: true),
                         Select::make('country_id')
                             ->label(__('dashboard.country'))
-                            ->options(Country::all()->pluck('name_ar', 'id'))
+                            ->options(Country::all()->pluck('name_' . app()->getLocale(), 'id'))
+                            ->searchable()
+                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'patient'),
+                        Select::make('cancer_id')
+                            ->label(__('dashboard.cancer'))
+                            ->options(Cancer::all()->pluck('name_' . app()->getLocale(), 'id'))
                             ->searchable()
                             ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'patient'),
                         Select::make('account_status')
@@ -156,7 +162,7 @@ class UserResource extends Resource
                     ->label(__('dashboard.email'))
                     ->searchable(isIndividual: true, isGlobal: false)
                     ->sortable(),
-                TextColumn::make('country.name_ar')
+                TextColumn::make('country.name_' . app()->getLocale())
                     ->label(__('dashboard.country')),
                 TextColumn::make('account_type')
                     ->label(__('dashboard.account_type'))

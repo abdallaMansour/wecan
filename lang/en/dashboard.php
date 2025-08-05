@@ -3,6 +3,18 @@
 return [
     'administrators' => 'Administrators',
     'administrator' => 'Administrator',
+
+    // Cancer
+    'cancer_name_ar' => 'Cancer Name (Arabic)',
+    'cancer_name_en' => 'Cancer Name (English)',
+    'cancer_type' => 'Type of Cancer',
+    'cancer_types' => 'Types of Cancer',
+    'cancers' => 'Cancers',
+    'cancer' => 'Cancer',
+    'cancer_screening_centers' => 'Cancer Screening Centers',
+    'cancer_screening_center' => 'Cancer Screening Center',
+    'cancer_image' => 'Cancer Image',
+
     'cancer_screening_centers' => 'Cancer Screening Centers',
     'cancer_screening_center' => 'Cancer Screening Center',
     'contact_us' => 'Contact Us',

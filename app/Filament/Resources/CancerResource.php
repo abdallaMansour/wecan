@@ -59,11 +59,15 @@ class CancerResource extends Resource
                 Forms\Components\TextInput::make('name_ar')
                     ->required()
                     ->maxLength(255)
-                    ->label(__('dashboard.cancer_name_ar')),
+                    ->label(__('dashboard.cancer_name_ar'))
+                    ->columnSpan('full')
+                    ->hidden(fn() => app()->getLocale() !== 'ar'),
                 Forms\Components\TextInput::make('name_en')
                     ->required()
                     ->maxLength(255)
-                    ->label(__('dashboard.cancer_name_en')),
+                    ->label(__('dashboard.cancer_name_en'))
+                    ->columnSpan('full')
+                    ->hidden(fn() => app()->getLocale() !== 'en'),
                 Toggle::make('visible')
                     ->label(__('dashboard.visible'))
             ]);
@@ -71,11 +75,13 @@ class CancerResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $lang = app()->getLocale();
+
         return $table
             ->columns([
                 ImageColumn::make('cancer_image')->label(__('dashboard.cancer_image')),
-                TextColumn::make('name_ar')->label(__('dashboard.name_ar')),
-                TextColumn::make('name_en')->label(__('dashboard.name_en')),
+                TextColumn::make('name_' . $lang)->label(__('dashboard.name_' . $lang)),
+                // TextColumn::make('name_en')->label(__('dashboard.name_en')),
                 ToggleColumn::make('visible')->label(__('dashboard.visible'))
             ])
             ->filters([
@@ -83,6 +89,7 @@ class CancerResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

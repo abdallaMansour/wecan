@@ -10,6 +10,7 @@ return [
     'cancer_type' => 'نوع مرض السرطان',
     'cancer_types' => 'أنواع مرض السرطان',
     'cancers' => 'امراض السرطان',
+    'cancer' => 'مرض السرطان',
     'cancer_screening_centers' => 'مراكز فحص السرطان',
     'cancer_screening_center' => 'مركز فحص السرطان',
     'cancer_image' => 'صورة مرض السرطان',
