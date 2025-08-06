@@ -51,7 +51,7 @@ class UserResource extends Resource
             ->schema([
                 Forms\Components\Section::make()
                     ->schema([
-                        Forms\Components\TextInput::make('name')
+                        Forms\Components\TextInput::make(app()->getLocale() === 'ar' ? 'name' : 'name_en')
                             ->label(__('dashboard.name'))
                             ->maxLength(255)
                             ->required(),
@@ -83,22 +83,22 @@ class UserResource extends Resource
                             ->label(__('dashboard.profession_ar'))
                             ->required()
                             ->maxLength(255)
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->hidden(fn (?User $record) => app()->getLocale() !== 'ar' || $record === null || $record->account_type !== 'doctor'),
                         Forms\Components\TextInput::make('profession_en')
                             ->label(__('dashboard.profession_en'))
                             ->required()
                             ->maxLength(255)
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->hidden(fn (?User $record) => app()->getLocale() !== 'en' || $record === null || $record->account_type !== 'doctor'),
                         Forms\Components\TextInput::make('hospital_ar')
                             ->label(__('dashboard.hospital_ar'))
                             ->required()
                             ->maxLength(255)
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->hidden(fn (?User $record) => app()->getLocale() !== 'ar' || $record === null || $record->account_type !== 'doctor'),
                         Forms\Components\TextInput::make('hospital_en')
                             ->label(__('dashboard.hospital_en'))
                             ->required()
                             ->maxLength(255)
-                            ->hidden(fn (?User $record) => $record === null || $record->account_type !== 'doctor'),
+                            ->hidden(fn (?User $record) => app()->getLocale() !== 'en' || $record === null || $record->account_type !== 'doctor'),
                         Forms\Components\TextInput::make('contact_number')
                             ->label(__('dashboard.contact_number'))
                             ->required()
@@ -154,7 +154,7 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')
+                TextColumn::make(app()->getLocale() === 'ar' ? 'name' : 'name_en')
                     ->label(__('dashboard.name'))
                     ->searchable(isIndividual: true)
                     ->sortable(),
