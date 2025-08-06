@@ -15,6 +15,12 @@ return [
     'cancer_screening_center' => 'Cancer Screening Center',
     'cancer_image' => 'Cancer Image',
 
+    // patient medications
+    'month-or-day' => 'Month or Day',
+    'duration' => 'Duration',
+
+    'admin' => 'Admin',
+
     'cancer_screening_centers' => 'Cancer Screening Centers',
     'cancer_screening_center' => 'Cancer Screening Center',
     'contact_us' => 'Contact Us',

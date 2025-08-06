@@ -65,6 +65,19 @@ class PatientMedicationsRelationManager extends RelationManager
                         'month' => __('dashboard.month'),
                     ])
                     ->searchable(),
+                Forms\Components\TextInput::make('duration')
+                    ->label(__('dashboard.duration'))
+                    ->required()
+                    ->numeric()
+                    ->maxLength(255),
+                Select::make('month-or-day')
+                    ->required()
+                    ->label(__('dashboard.month-or-day'))
+                    ->options([
+                        'day' => __('dashboard.day'),
+                        'month' => __('dashboard.month'),
+                    ])
+                    ->searchable(),
                 Textarea::make('instructions')
                     ->rows(5)
                     ->columnSpan(2)
@@ -81,6 +94,8 @@ class PatientMedicationsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('drug_name')->label(__('dashboard.drug_name')),
                 Tables\Columns\TextColumn::make('frequency')->label(__('dashboard.frequency')),
                 Tables\Columns\TextColumn::make('frequency_per')->label(__('dashboard.frequency_per')),
+                Tables\Columns\TextColumn::make('month-or-day')->label(__('dashboard.month-or-day'))->default('--'),
+                Tables\Columns\TextColumn::make('duration')->label(__('dashboard.duration'))->default('--'),
             ])
             ->filters([
                 //

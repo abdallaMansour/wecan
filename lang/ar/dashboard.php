@@ -15,6 +15,12 @@ return [
     'cancer_screening_center' => 'مركز فحص السرطان',
     'cancer_image' => 'صورة مرض السرطان',
 
+    // patient medications
+    'month-or-day' => 'شهر أو يوم',
+    'duration' => 'مدة',
+
+    'admin' => 'المدير',
+
     'contact_us' => 'التواصل معنا',
     'countries' => 'الدول',
     'country' => 'الدولة',
