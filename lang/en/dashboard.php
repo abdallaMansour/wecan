@@ -127,5 +127,7 @@ return [
     'hospital' => 'Hospital',
     'full_name' => 'Full Name',
     'password' => 'Password',
-    'password_confirmation' => 'Password Confirmation'
+    'password_confirmation' => 'Password Confirmation',
+    'copy_url' => 'Copy URL',
+    'hospital_url_copied' => 'Hospital URL copied to clipboard!'
 ];

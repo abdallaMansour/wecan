@@ -125,7 +125,9 @@ return [
     'hospital' => 'مستشفى',
     'full_name' => 'الاسم الكامل',
     'password' => 'كلمة المرور',
-    'password_confirmation' => 'اعادة كلمة المرور'
+    'password_confirmation' => 'اعادة كلمة المرور',
+    'copy_url' => 'نسخ الرابط',
+    'hospital_url_copied' => 'تم نسخ رابط المستشفى إلى الحافظة!'
 
 
 

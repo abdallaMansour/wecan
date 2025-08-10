@@ -17,8 +17,18 @@ class Hospital extends Model
         'email',
         'contact_number',
         'country_id',
-        'city', // Changed from city_id to city
+        'city',
+        'account_status',
+        'password',
     ];
+
+    protected $casts = [
+        'password' => 'hashed',
+    ];
+
+    public function activate() {
+        $this->update(['account_status' => 'active']);
+    }
 
     public function country(): BelongsTo
     {

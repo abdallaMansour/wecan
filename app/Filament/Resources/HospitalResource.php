@@ -44,7 +44,7 @@ class HospitalResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('email')
-                    ->label(__('dashboard.full_name'))
+                    ->label(__('dashboard.email'))
                     ->email()
                     ->required()
                     ->maxLength(255),
@@ -64,7 +64,6 @@ class HospitalResource extends Resource
                     ->dehydrated(false),
                 Forms\Components\TextInput::make('contact_number')
                     ->label(__('dashboard.contact_number'))
-
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('country_id')
@@ -128,6 +127,15 @@ class HospitalResource extends Resource
                         'pending' => 'warning',
                         'banned' => 'danger',
                     }),
+                    Tables\Columns\TextColumn::make('hospital_url')
+                    ->label(__('dashboard.copy_url'))
+                    ->copyable()
+                    ->copyMessage(__('dashboard.hospital_url_copied'))
+                    ->copyMessageDuration(1500)
+                    ->getStateUsing(fn ($record) => env('HOSPITAL_URL') . '/login?hospital=' . $record->id)
+                    ->formatStateUsing(fn () => 'Copy')
+                    ->disabled(),
+                
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('dashboard.created_at'))
                     ->dateTime(),
