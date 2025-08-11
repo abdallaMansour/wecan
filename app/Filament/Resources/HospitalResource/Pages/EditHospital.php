@@ -41,12 +41,12 @@ class EditHospital extends EditRecord
         Log::info('After save method called', ['data' => $data]);
 
         // Handle password change
-        if (!empty($data['new_password'])) {
+        if (!empty($data['password'])) {
             $user = User::where('email', $this->record->email)->first();
             if ($user) {
                 try {
                     $user->update([
-                        'password' => Hash::make($data['new_password']),
+                        'password' => $data['password'],
                     ]);
                     Log::info('User password updated', ['user_id' => $user->id]);
                     Notification::make()
@@ -90,8 +90,8 @@ class EditHospital extends EditRecord
                     'email' => $data['email'],
                 ];
 
-                if (!empty($data['new_password'])) {
-                    $userData['password'] = Hash::make($data['new_password']);
+                if (!empty($data['password'])) {
+                    $userData['password'] = $data['password'];
                 }
 
                 $user->update($userData);
