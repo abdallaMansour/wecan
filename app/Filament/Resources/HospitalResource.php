@@ -74,18 +74,10 @@ class HospitalResource extends Resource
                     ->reactive(),
                 Forms\Components\Select::make('city')
                     ->label(__('dashboard.region'))
-
-                    ->options(function (callable $get) {
-                        $country = Country::find($get('country_id'));
-                        if (!$country) {
-                            return Region::all()->pluck('name_ar', 'id');
-                        }
-                        return $country->regions->pluck('name_ar', 'id');
-                    })
+                    ->options(Region::all()->pluck('name_ar', 'id'))
                     ->searchable()
                     ->required()
-                    ->reactive()
-                    ->disabled(fn(callable $get) => !$get('country_id')),
+                    ->reactive(),
                 Forms\Components\Select::make('account_status')
                     ->label(__('dashboard.account_status'))
 
@@ -127,15 +119,15 @@ class HospitalResource extends Resource
                         'pending' => 'warning',
                         'banned' => 'danger',
                     }),
-                    Tables\Columns\TextColumn::make('hospital_url')
+                Tables\Columns\TextColumn::make('hospital_url')
                     ->label(__('dashboard.copy_url'))
                     ->copyable()
                     ->copyMessage(__('dashboard.hospital_url_copied'))
                     ->copyMessageDuration(1500)
-                    ->getStateUsing(fn ($record) => env('HOSPITAL_URL') . '/login?hospital=' . $record->id)
-                    ->formatStateUsing(fn () => 'Copy')
+                    ->getStateUsing(fn($record) => env('HOSPITAL_URL') . '/login?hospital=' . $record->id)
+                    ->formatStateUsing(fn() => 'Copy')
                     ->disabled(),
-                
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('dashboard.created_at'))
                     ->dateTime(),
