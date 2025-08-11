@@ -24,53 +24,53 @@ class EditHospital extends EditRecord
         ];
     }
 
-    protected function mutateFormDataBeforeSave(array $data): array
-    {
-        Log::info('Mutating form data before save', ['data' => $data]);
+    // protected function mutateFormDataBeforeSave(array $data): array
+    // {
+    //     Log::info('Mutating form data before save', ['data' => $data]);
 
-        // Remove password fields from the data array as they shouldn't be saved to the Hospital model
-        unset($data['new_password']);
-        unset($data['new_password_confirmation']);
+    //     // Remove password fields from the data array as they shouldn't be saved to the Hospital model
+    //     unset($data['new_password']);
+    //     unset($data['new_password_confirmation']);
 
-        return $data;
-    }
+    //     return $data;
+    // }
 
-    protected function afterSave(): void
-    {
-        $data = $this->form->getState();
-        Log::info('After save method called', ['data' => $data]);
+    // protected function afterSave(): void
+    // {
+    //     $data = $this->form->getState();
+    //     Log::info('After save method called', ['data' => $data]);
 
-        // Handle password change
-        if (!empty($data['password'])) {
-            $user = User::where('email', $this->record->email)->first();
-            if ($user) {
-                try {
-                    $user->update([
-                        'password' => $data['password'],
-                    ]);
-                    Log::info('User password updated', ['user_id' => $user->id]);
-                    Notification::make()
-                        ->title('Password updated successfully')
-                        ->success()
-                        ->send();
-                } catch (\Exception $e) {
-                    Log::error('Failed to update user password', ['error' => $e->getMessage()]);
-                    Notification::make()
-                        ->title('Failed to update password')
-                        ->body('An error occurred while updating the password.')
-                        ->danger()
-                        ->send();
-                }
-            } else {
-                Log::warning('User not found for password update', ['email' => $this->record->email]);
-                Notification::make()
-                    ->title('User not found')
-                    ->body('Unable to update password: user account not found.')
-                    ->warning()
-                    ->send();
-            }
-        }
-    }
+    //     // Handle password change
+    //     if (!empty($data['password'])) {
+    //         $user = User::where('email', $this->record->email)->first();
+    //         if ($user) {
+    //             try {
+    //                 $user->update([
+    //                     'password' => $data['password'],
+    //                 ]);
+    //                 Log::info('User password updated', ['user_id' => $user->id]);
+    //                 Notification::make()
+    //                     ->title('Password updated successfully')
+    //                     ->success()
+    //                     ->send();
+    //             } catch (\Exception $e) {
+    //                 Log::error('Failed to update user password', ['error' => $e->getMessage()]);
+    //                 Notification::make()
+    //                     ->title('Failed to update password')
+    //                     ->body('An error occurred while updating the password.')
+    //                     ->danger()
+    //                     ->send();
+    //             }
+    //         } else {
+    //             Log::warning('User not found for password update', ['email' => $this->record->email]);
+    //             Notification::make()
+    //                 ->title('User not found')
+    //                 ->body('Unable to update password: user account not found.')
+    //                 ->warning()
+    //                 ->send();
+    //         }
+    //     }
+    // }
 
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
