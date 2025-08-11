@@ -4,6 +4,11 @@ return [
     'administrators' => 'المبادرون',
     'administrator' => 'المبادر',
 
+    // Account Status
+    'active' => 'نشط',
+    'banned' => 'محظور',
+    'pending' => 'قيد الانتظار',
+
     // Cancer
     'cancer_name_ar' => 'اسم مرض السرطان (بالعربية)',
     'cancer_name_en' => 'اسم مرض السرطان (بالإنجليزية)',
@@ -59,9 +64,7 @@ return [
     'created_at' => 'تم الإنشاء في',
     'last_modified_at' => 'آخر تعديل في',
     'account_status' => 'حالة الحساب',
-    'active' => 'نشط',
     'cancelled' => 'ملغاة',
-    'banned' => 'محظور',
     'ban' => 'حظر',
     'activate' => 'تفعيل',
     'profession_ar' => 'المهنة بالعربية',

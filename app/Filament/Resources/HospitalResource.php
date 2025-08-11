@@ -90,9 +90,9 @@ class HospitalResource extends Resource
                     ->label(__('dashboard.account_status'))
 
                     ->options([
-                        'pending' => 'dashboard.pending',
-                        'active' => 'dashboard.active',
-                        'banned' => 'dashboard.banned',
+                        'pending' => __('dashboard.pending'),
+                        'active' => __('dashboard.active'),
+                        'banned' => __('dashboard.banned'),
                     ])
                     ->required(),
             ]);

@@ -4,6 +4,11 @@ return [
     'administrators' => 'Administrators',
     'administrator' => 'Administrator',
 
+    // Account Status
+    'active' => 'Active',
+    'banned' => 'Banned',
+    'pending' => 'Pending',
+
     // Cancer
     'cancer_name_ar' => 'Cancer Name (Arabic)',
     'cancer_name_en' => 'Cancer Name (English)',
@@ -20,9 +25,6 @@ return [
     'duration' => 'Duration',
 
     'admin' => 'Admin',
-
-    'cancer_screening_centers' => 'Cancer Screening Centers',
-    'cancer_screening_center' => 'Cancer Screening Center',
     'contact_us' => 'Contact Us',
     'countries' => 'Countries',
     'country' => 'Country',
@@ -61,9 +63,7 @@ return [
     'created_at' => 'Created At',
     'last_modified_at' => 'Last Modified At',
     'account_status' => 'Account Status',
-    'active' => 'Active',
     'cancelled' => 'Cancelled',
-    'banned' => 'Banned',
     'ban' => 'Ban',
     'activate' => 'Activate',
     'profession_ar' => 'Profession in Arabic',
