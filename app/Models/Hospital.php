@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Mail\HospitalStatusChanged;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Hospital extends Model
 {
@@ -27,6 +29,7 @@ class Hospital extends Model
     ];
 
     public function activate() {
+        Mail::to($this->email)->send(new HospitalStatusChanged($this));
         $this->update(['account_status' => 'active']);
     }
 
