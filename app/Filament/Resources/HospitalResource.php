@@ -46,6 +46,7 @@ class HospitalResource extends Resource
                 Forms\Components\TextInput::make('email')
                     ->label(__('dashboard.email'))
                     ->email()
+                    ->unique(ignoreRecord: true)
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('password')
