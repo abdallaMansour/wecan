@@ -1,28 +1,29 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CancerScreeningCenterController;
-use App\Http\Controllers\CharityController;
-use App\Http\Controllers\ChemotherapySessionController;
-use App\Http\Controllers\ContactUsController;
-use App\Http\Controllers\CountryController;
-use App\Http\Controllers\DoctorController;
-use App\Http\Controllers\HealthTipController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\InitiatorController;
-use App\Http\Controllers\PatientAppointmentController;
-use App\Http\Controllers\PatientFoodController;
-use App\Http\Controllers\PatientHealthReportController;
-use App\Http\Controllers\PatientMedicationController;
-use App\Http\Controllers\PatientNoteController;
-use App\Http\Controllers\RegionController;
-use App\Http\Controllers\SupporterController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AttachmentController;
-use App\Http\Controllers\FavoriteController;
-
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\DoctorController;
+use App\Http\Controllers\RegionController;
+use App\Http\Controllers\CharityController;
+use App\Http\Controllers\CountryController;
+use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\HospitalController;
+use App\Http\Controllers\ContactUsController;
+use App\Http\Controllers\HealthTipController;
+use App\Http\Controllers\InitiatorController;
+use App\Http\Controllers\SupporterController;
+use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\PatientFoodController;
+use App\Http\Controllers\PatientNoteController;
+use App\Http\Controllers\PatientMedicationController;
+use App\Http\Controllers\PatientAppointmentController;
+use App\Http\Controllers\ChemotherapySessionController;
+
+use App\Http\Controllers\PatientHealthReportController;
+use App\Http\Controllers\CancerScreeningCenterController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -36,6 +37,7 @@ Route::post('/register-hospital', [AuthController::class, 'registerHospital']); 
 
 Route::post('/supporters', [SupporterController::class, 'addSupporter']);
 Route::get('/countries', [CountryController::class, 'index']);
+Route::get('/hospitals', [HospitalController::class, 'index']);
 Route::get('/regions', [RegionController::class, 'index']);
 Route::get('/supporters', [SupporterController::class, 'index']);
 Route::get('/initiators', [InitiatorController::class, 'index']);
