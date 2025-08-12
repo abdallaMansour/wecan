@@ -11,6 +11,7 @@ use App\Mail\VerifyEmail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -27,19 +28,19 @@ class AuthController extends Controller
             'password' => 'required',
             'fcm_token' => 'required|string', // Add this line to validate FCM token
         ]);
-    
+
         $user = User::where('email', $validatedData['email'])->first();
-    
+
         if ($user && !in_array($user->account_status, ['cancelled', 'banned'])) {
             if (Auth::attempt(['email' => $validatedData['email'], 'password' => $validatedData['password']])) {
                 $user = Auth::user();
-                
+
                 // Update FCM token
                 $user->fcm_token = $validatedData['fcm_token'];
                 $user->save();
-    
+
                 $token = $user->createToken('user_api')->plainTextToken;
-    
+
                 $responseData = [
                     'id' => $user->id,
                     'token' => $token,
@@ -49,12 +50,12 @@ class AuthController extends Controller
                     'account_type' => $user->account_type,
                     'fcm_token' => $user->fcm_token, // Add FCM token to response data
                 ];
-    
+
                 // Add account status if the user is a hospital
                 if ($user->account_type === 'hospital') {
                     $responseData['account_status'] = $user->hospital->account_status;
                 }
-    
+
                 return ResponseHelper::success('Login successful', $responseData);
             } else {
                 return ResponseHelper::error('Invalid credentials', 401);
@@ -124,46 +125,50 @@ class AuthController extends Controller
                 'contact_number' => 'nullable|string',
                 'experience_years' => 'nullable|numeric',
                 'show_info_to_patients' => 'required',
-                'profile_picture' => 'nullable|file'
+                'profile_picture' => 'nullable|file',
+                'hospital_id' => 'required|exists:hospitals,id',
             ]);
         } catch (ValidationException $e) {
             return ResponseHelper::error($e->errors(), 422);
         }
 
+        DB::beginTransaction();
         try {
-            // Create a new user instance
             $user = new User();
-            $user->fill(Arr::except($validatedData, ['profile_picture']));
+            $user->fill(Arr::except($validatedData, ['profile_picture', 'hospital_id']));
             $user->password = Hash::make($validatedData['password']);
-            $user->account_type =  'doctor';
+            $user->account_type = 'doctor';
 
             if ($request->hasFile('profile_picture')) {
                 $image = $request->file('profile_picture');
                 $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-                $image->storeAs('public/profile_pictures', $imageName); // Store the image in storage/app/public/drug_images directory
-                $user->profile_picture = 'profile_pictures/' . $imageName; // Set the image path in the database
+                $image->storeAs('public/profile_pictures', $imageName);
+                $user->profile_picture = 'profile_pictures/' . $imageName;
             }
 
             $user->save();
 
-            $user->hospitalAttachedDoctors()->attach([
-                'user_id' => $user->id,
-                'hospital_id' => $user->hospital_id,
-                'status' => 'pending',
-                'sender_id' => $user->id,
-            ]);
+            $user->hospitalAttachedDoctors()->attach(
+                $validatedData['hospital_id'],
+                [
+                    'status' => 'pending',
+                    'sender_id' => $user->id
+                ]
+            );
 
             $token = $user->createToken('user_api')->plainTextToken;
-
             $user->setAttribute('token', $token);
+
+            DB::commit();
 
             return ResponseHelper::success('User registered successfully', new UserResource($user), 201);
         } catch (\Exception $e) {
             Log::error('Error registering user: ' . $e->getMessage());
-
+            DB::rollBack();
             return ResponseHelper::error('An error occurred while registering user');
         }
     }
+
     public function registerHospital(Request $request)
     {
         try {
@@ -180,10 +185,10 @@ class AuthController extends Controller
         } catch (ValidationException $e) {
             return ResponseHelper::error($e->errors(), 422);
         }
-    
+
         try {
             Log::info('Validated data for hospital registration:', $validatedData);
-    
+
             $hospital = new Hospital();
             $hospital->hospital_name = $validatedData['hospital_name'];
             $hospital->user_name = $validatedData['user_name'];
@@ -192,7 +197,7 @@ class AuthController extends Controller
             $hospital->country_id = $validatedData['country_id'];
             $hospital->city = $validatedData['city'];
             //$hospital->account_status = 'pending'; // Set the account status to pending
-    
+
             if ($request->hasFile('hospital_logo')) {
                 $logo = $request->file('hospital_logo');
                 $logoName = time() . '_' . uniqid() . '.' . $logo->getClientOriginalExtension();
@@ -200,27 +205,27 @@ class AuthController extends Controller
                 $hospital->hospital_logo = 'hospital_logos/' . $logoName;
             }
             $hospital->save();
-    
+
             $user = new User();
             $user->name = $validatedData['user_name'];
             $user->email = $validatedData['email'];
             $user->password = Hash::make($validatedData['password']);
             $user->account_type = 'hospital';
-          //  $user->account_status = 'pending'; // Set the account status to pending
+            //  $user->account_status = 'pending'; // Set the account status to pending
             $user->hospital_id = $hospital->id;
-    
+
             $user->save();
-    
+
             $token = $user->createToken('user_api')->plainTextToken;
-    
+
             $user->setAttribute('token', $token);
-    
+
             return ResponseHelper::success('Hospital registered successfully. Account is pending approval.', new UserResource($user), 201);
         } catch (\Exception $e) {
             Log::error('Error registering hospital: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
             Log::error('Validated data:', $validatedData);
-    
+
             return ResponseHelper::error('An error occurred while registering hospital');
         }
     }
@@ -235,7 +240,7 @@ class AuthController extends Controller
             if ($user->account_type == 'doctor') {
                 return ResponseHelper::success('Doctor Profile successfully', new DoctorProfileResource($user), 201);
             }
-                 if ($user->account_type == 'hospital') {
+            if ($user->account_type == 'hospital') {
                 $hospital = $user->hospital;
                 $profileData = [
                     'id' => $hospital->id,
@@ -362,35 +367,35 @@ class AuthController extends Controller
 
         return  ResponseHelper::success('A new password has been sent to your email address.');
     }
-public function getPatientByEmail(Request $request)
-{
-    // Ensure the user is authenticated and is a hospital
-    if (!Auth::check() || Auth::user()->account_type !== 'hospital') {
-        return ResponseHelper::error('Unauthorized. Only hospitals can access this information.', 403);
-    }
-
-    // Validate the request
-    $validatedData = $request->validate([
-        'email' => 'required|email|exists:users,email'
-    ]);
-
-    try {
-        // Find the patient by email
-        $patient = User::where('email', $validatedData['email'])
-                       ->where('account_type', 'patient')
-                       ->first();
-
-        if (!$patient) {
-            return ResponseHelper::error('Patient not found or email does not belong to a patient account.', 404);
+    public function getPatientByEmail(Request $request)
+    {
+        // Ensure the user is authenticated and is a hospital
+        if (!Auth::check() || Auth::user()->account_type !== 'hospital') {
+            return ResponseHelper::error('Unauthorized. Only hospitals can access this information.', 403);
         }
 
-        // Return the patient profile
-        return ResponseHelper::success('Patient profile retrieved successfully', new PatientProfileResource($patient));
-    } catch (\Exception $e) {
-        Log::error('Error retrieving patient profile: ' . $e->getMessage());
-        return ResponseHelper::error('An error occurred while retrieving the patient profile', 500);
+        // Validate the request
+        $validatedData = $request->validate([
+            'email' => 'required|email|exists:users,email'
+        ]);
+
+        try {
+            // Find the patient by email
+            $patient = User::where('email', $validatedData['email'])
+                ->where('account_type', 'patient')
+                ->first();
+
+            if (!$patient) {
+                return ResponseHelper::error('Patient not found or email does not belong to a patient account.', 404);
+            }
+
+            // Return the patient profile
+            return ResponseHelper::success('Patient profile retrieved successfully', new PatientProfileResource($patient));
+        } catch (\Exception $e) {
+            Log::error('Error retrieving patient profile: ' . $e->getMessage());
+            return ResponseHelper::error('An error occurred while retrieving the patient profile', 500);
+        }
     }
-}
 
     /**
      * Store a newly created resource in storage.
