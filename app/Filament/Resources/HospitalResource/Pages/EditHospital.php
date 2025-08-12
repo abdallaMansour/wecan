@@ -83,7 +83,7 @@ class EditHospital extends EditRecord
             $record->update($hospitalData);
 
             // Find and update the associated user
-            $user = User::where('email', $record->email)->first();
+            $user = User::find($record->id);
             if ($user) {
                 $userData = [
                     'name' => $data['user_name'] ?? $user->name,
