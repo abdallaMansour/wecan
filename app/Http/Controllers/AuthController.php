@@ -148,13 +148,13 @@ class AuthController extends Controller
 
             $user->save();
 
-            $user->hospitalAttachedDoctors()->attach(
-                $validatedData['hospital_id'],
-                [
-                    'status' => 'pending',
-                    'sender_id' => $user->id
-                ]
-            );
+            DB::table('hospital_user_attachments')->insert([
+                'hospital_id' => $validatedData['hospital_id'],
+                'user_id' => $user->id,
+                'status' => 'approved',
+                'sender_id' => $user->id,
+                'account_type' => 'doctor',
+            ]);
 
             $token = $user->createToken('user_api')->plainTextToken;
             $user->setAttribute('token', $token);
