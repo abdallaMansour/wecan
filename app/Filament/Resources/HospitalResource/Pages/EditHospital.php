@@ -86,8 +86,8 @@ class EditHospital extends EditRecord
             $user = User::where('account_type', 'hospital')->where('hospital_id', $record->id)->first();
             if ($user) {
 
-                $user = User::where('email', $record->email)->get();
-                if ($user && ($user->count() > 1 || $user->first()?->id != $user->id)) {
+                $user_check = User::where('email', $record->email)->get();
+                if ($user_check && ($user_check->count() > 1 || $user_check->first()?->id != $user->id)) {
                     Notification::make()
                         ->title('Email already exists')
                         ->body('The email you entered is already in use by another hospital. Please use a different email.')
