@@ -18,6 +18,8 @@ class User extends Authenticatable implements FilamentUser
 
     protected $appends = ['profile_picture_path'];
 
+    protected $guarded = [];
+
     protected $hidden = [
         'password',
         'remember_token',
