@@ -138,6 +138,7 @@ class AuthController extends Controller
             $user->fill(Arr::except($validatedData, ['profile_picture', 'hospital_id']));
             $user->password = $validatedData['password'];
             $user->account_type = 'doctor';
+            $user->hospital_id = $validatedData['hospital_id'];
 
             if ($request->hasFile('profile_picture')) {
                 $image = $request->file('profile_picture');
