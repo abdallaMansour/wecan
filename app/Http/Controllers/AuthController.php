@@ -146,6 +146,13 @@ class AuthController extends Controller
 
             $user->save();
 
+            $user->hospitalAttachedDoctors()->attach([
+                'user_id' => $user->id,
+                'hospital_id' => $user->hospital_id,
+                'status' => 'pending',
+                'sender_id' => $user->id,
+            ]);
+
             $token = $user->createToken('user_api')->plainTextToken;
 
             $user->setAttribute('token', $token);
