@@ -31,64 +31,64 @@ class ChatController extends Controller
         return response()->json($chatRoom, 201);
     }
 
-   public function sendMessage(Request $request)
-{
-    $validated = $request->validate([
-        'chat_room_id' => 'required|exists:chat_rooms,id',
-        'message' => 'required|string',
-    ]);
+    public function sendMessage(Request $request)
+    {
+        $validated = $request->validate([
+            'chat_room_id' => 'required|exists:chat_rooms,id',
+            'message' => 'required|string',
+        ]);
 
-    $user = auth()->user();
+        $user = auth()->user();
 
-    $message = ChatMessage::create([
-        'chat_room_id' => $validated['chat_room_id'],
-        'user_id' => $user->id,
-        'message' => $validated['message'],
-    ]);
+        $message = ChatMessage::create([
+            'chat_room_id' => $validated['chat_room_id'],
+            'user_id' => $user->id,
+            'message' => $validated['message'],
+        ]);
 
-    // Fetch the users in the chat room
-    $chatRoom = ChatRoom::with(['doctor', 'patient', 'hospital'])->find($validated['chat_room_id']);
-    $recipients = [$chatRoom->doctor, $chatRoom->patient];
+        // Fetch the users in the chat room
+        $chatRoom = ChatRoom::with(['doctor', 'patient', 'hospital'])->find($validated['chat_room_id']);
+        $recipients = [$chatRoom->doctor, $chatRoom->patient];
 
-    if ($chatRoom->hospital) {
-        $recipients[] = $chatRoom->hospital;
-    }
+        if ($chatRoom->hospital) {
+            $recipients[] = $chatRoom->hospital;
+        }
 
-    try {
-        // Send FCM notification to each recipient
-        foreach ($recipients as $recipient) {
-            if ($recipient->fcm_token && $recipient->id !== $user->id) {
-                $response = $this->fcmService->sendNotification(
-                    $recipient->fcm_token,
-                    'New Message from ' . $user->name,
-                   $validated['message']
+        try {
+            // Send FCM notification to each recipient
+            foreach ($recipients as $recipient) {
+                if ($recipient->fcm_token && $recipient->id !== $user->id) {
+                    $response = $this->fcmService->sendNotification(
+                        $recipient->fcm_token,
+                        'New Message from ' . $user->name,
+                        $validated['message']
 
-                );
-                if (isset($response['error'])) {
-                    \Log::error('FCM Notification Error', [
-                        'recipient_id' => $recipient->id,
-                        'error' => $response['error'],
-                    ]);
-                } else {
-                    \Log::info('FCM Notification Sent', [
-                        'recipient_id' => $recipient->id,
-                        'message_id' => $response['name'],
-                    ]);
+                    );
+                    if (isset($response['error'])) {
+                        \Log::error('FCM Notification Error', [
+                            'recipient_id' => $recipient->id,
+                            'error' => $response['error'],
+                        ]);
+                    } else {
+                        \Log::info('FCM Notification Sent', [
+                            'recipient_id' => $recipient->id,
+                            'message_id' => $response['name'],
+                        ]);
+                    }
                 }
             }
+        } catch (\Exception $e) {
+            \Log::error('FCM Notification Exception', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
-    } catch (\Exception $e) {
-        \Log::error('FCM Notification Exception', [
-            'exception' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-        ]);
-    }
 
-    return response()->json([
-        'message' => $message,
-        'user' => $user->only(['id', 'name']),
-    ], 201);
-}
+        return response()->json([
+            'message' => $message,
+            'user' => $user->only(['id', 'name']),
+        ], 201);
+    }
 
     public function getRoomMessages(Request $request)
     {
