@@ -20,7 +20,8 @@ class UserResource extends JsonResource
             'email' => $this->email ?? '',
             'name' => $this->name ?? '',
             'preferred_language' => $this->preferred_language ?? 'ar',
-            'account_type' => $this->account_type ?? ''
+            'account_type' => $this->account_type ?? '',
+            'hospital_id' => $this->hospital_id ?? 0,
         ];
     }
 }

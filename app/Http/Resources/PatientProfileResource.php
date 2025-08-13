@@ -14,14 +14,18 @@ class PatientProfileResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $lang = $this->preferred_language ?? 'ar';
+        $name_key = $lang == 'ar' ? 'name_ar' : 'name_en';
+
         return [
             'id' => $this->id ?? -1,
             'email' => $this->email ?? '',
             'name' => $this->name ?? '',
-            'preferred_language' => $this->preferred_language ?? 'ar',
-            'country_name' => $this->country->name_ar ?? '',
-            'country_id' => $this->country_id ?? -1
-
+            'preferred_language' => $lang,
+            'country_name' => $this->country->$name_key ?? '',
+            'country_id' => $this->country_id ?? -1,
+            'cancer_name' => $this->cancer?->$name_key ?? '',
+            'cancer_id' => $this->cancer_id ?? -1,
         ];
     }
 }

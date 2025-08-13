@@ -33,6 +33,13 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    // relations
+    public function cancer(): BelongsTo
+    {
+        return $this->belongsTo(Cancer::class);
+    }
+
+
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->account_type == 'admin';

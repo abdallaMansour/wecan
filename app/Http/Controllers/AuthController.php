@@ -285,6 +285,7 @@ class AuthController extends Controller
             'experience_years' => 'nullable|integer',
             'profile_picture' => 'nullable|image',
             'show_info_to_patients' => 'nullable|boolean',
+            'cancer_id' => 'nullable|exists:cancers,id',
         ]);
 
         try {
@@ -292,10 +293,11 @@ class AuthController extends Controller
 
             $user->name = $validatedData['name'];
             $user->email = $validatedData['email'];
-            $user->preferred_language = $validatedData['preferred_language'];
+            $user->preferred_language = $validatedData['preferred_language'] ?? 'ar';
 
             if ($user->account_type === 'patient') {
                 $user->country_id = $validatedData['country_id'];
+                $user->cancer_id = $validatedData['cancer_id'];
             } elseif ($user->account_type === 'doctor') {
                 $user->profession_ar = $validatedData['profession_ar'];
                 $user->profession_en = $validatedData['profession_en'];
