@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\ResponseHelper;
-use App\Http\Resources\DoctorProfileResource;
-use App\Http\Resources\PatientProfileResource;
-use App\Models\Hospital;
-use App\Http\Resources\UserResource;
-use App\Mail\VerifyEmail;
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Models\Hospital;
+use App\Mail\VerifyEmail;
 use Illuminate\Support\Arr;
+use Illuminate\Http\Request;
+use App\Helpers\ResponseHelper;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Resources\DoctorProfileResource;
+use Stichoza\GoogleTranslate\GoogleTranslate;
+use App\Http\Resources\PatientProfileResource;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -139,6 +140,8 @@ class AuthController extends Controller
             $user->password = $validatedData['password'];
             $user->account_type = 'doctor';
             $user->hospital_id = $validatedData['hospital_id'];
+
+            $user->name_en = GoogleTranslate::trans($validatedData['name'], 'en', 'ar');
 
             if ($request->hasFile('profile_picture')) {
                 $image = $request->file('profile_picture');
