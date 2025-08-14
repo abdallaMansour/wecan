@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use App\Models\Hospital;
 
 return new class extends Migration
 {
@@ -14,6 +15,11 @@ return new class extends Migration
     {
         Schema::table('hospitals', function (Blueprint $table) {
             $table->string('key')->nullable()->unique()->after('id');
+        });
+
+        Hospital::whereNull('key')->get()->each(function ($hospital) {
+            $hospital->key = (string) Str::uuid();
+            $hospital->save();
         });
     }
 
