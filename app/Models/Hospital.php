@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 
 class Hospital extends Model
 {
@@ -22,11 +23,21 @@ class Hospital extends Model
         'city',
         'account_status',
         'password',
+        'key',
     ];
 
     protected $casts = [
         'password' => 'hashed',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+    
+        static::creating(function ($model) {
+            $model->key = (string) Str::uuid();
+        });
+    }
 
     public function activate() {
         Mail::to($this->email)->send(new HospitalStatusChanged($this));
