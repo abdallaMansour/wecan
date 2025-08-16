@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
-use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use App\Traits\Favoritable;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Notifications\Notifiable;
+use Filament\Models\Contracts\FilamentUser;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -89,7 +90,10 @@ class User extends Authenticatable implements FilamentUser
     public function getProfilePicturePathAttribute($value)
     {
         if (array_key_exists('profile_picture', $this->attributes)) {
-            return $this->attributes['profile_picture'] ? url('/storage/' . $this->attributes['profile_picture']) : '';
+            if (Storage::exists($this->attributes['profile_picture'] ?? '')) {
+                return url('/storage/' . $this->attributes['profile_picture']);
+            }
+            return env('HOSPITAL_URL') . '/storage/' . $this->attributes['profile_picture'];
         }
         return '';
     }
