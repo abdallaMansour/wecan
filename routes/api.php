@@ -21,9 +21,10 @@ use App\Http\Controllers\PatientNoteController;
 use App\Http\Controllers\PatientMedicationController;
 use App\Http\Controllers\PatientAppointmentController;
 use App\Http\Controllers\ChemotherapySessionController;
-
 use App\Http\Controllers\PatientHealthReportController;
 use App\Http\Controllers\CancerScreeningCenterController;
+use App\Http\Controllers\CancerController;
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -45,7 +46,7 @@ Route::get('/doctors', [DoctorController::class, 'index']);
 Route::post('/contact-us', [ContactUsController::class, 'store']);
 Route::get('/cancer-screening-centers', [CancerScreeningCenterController::class, 'index']);
 Route::get('/charities', [CharityController::class, 'index']);
-
+Route::get('/cancers', [CancerController::class, 'index']);
 Route::post('/chat/create-room', [ChatController::class, 'createRoom']);
 
 Route::middleware('auth:sanctum')->group(function () {
