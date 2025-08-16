@@ -7,6 +7,8 @@ use App\Models\ChatMessage;
 use App\Models\User; // Assuming User model has the fcm_token field
 use App\Services\FCMService; // Import the FCMService
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
@@ -35,15 +37,30 @@ class ChatController extends Controller
     {
         $validated = $request->validate([
             'chat_room_id' => 'required|exists:chat_rooms,id',
-            'message' => 'required|string',
+            // 'message_type' => 'required|in:text,media',
+            'message' => 'nullable|required_if:attachment_path,null|string',
+            'attachment_path' => 'nullable|required_if:message,null|file',
         ]);
 
-        $user = auth()->user();
+        $user = Auth::user();
+
+        if (ChatRoom::find($validated['chat_room_id'])->patient_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to send message in this chat room',
+            ], 403);
+        }
+
+        $attachmentPath = null;
+        if ($request->hasFile('attachment_path')) {
+            $attachmentPath = $request->file('attachment_path')->store('chat-attachments', 'public');
+        }
 
         $message = ChatMessage::create([
             'chat_room_id' => $validated['chat_room_id'],
             'user_id' => $user->id,
             'message' => $validated['message'],
+            // 'message_type' => $validated['message_type'],
+            'attachment_path' => $attachmentPath,
         ]);
 
         // Fetch the users in the chat room
@@ -62,15 +79,15 @@ class ChatController extends Controller
                         $recipient->fcm_token,
                         'New Message from ' . $user->name,
                         $validated['message']
-
                     );
+
                     if (isset($response['error'])) {
-                        \Log::error('FCM Notification Error', [
+                        Log::error('FCM Notification Error', [
                             'recipient_id' => $recipient->id,
                             'error' => $response['error'],
                         ]);
                     } else {
-                        \Log::info('FCM Notification Sent', [
+                        Log::info('FCM Notification Sent', [
                             'recipient_id' => $recipient->id,
                             'message_id' => $response['name'],
                         ]);
@@ -78,7 +95,7 @@ class ChatController extends Controller
                 }
             }
         } catch (\Exception $e) {
-            \Log::error('FCM Notification Exception', [
+            Log::error('FCM Notification Exception', [
                 'exception' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
