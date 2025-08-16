@@ -44,10 +44,10 @@ class ChatController extends Controller
 
         $user = Auth::user();
 
-        if (ChatRoom::find($validated['chat_room_id'])->patient_id !== $user->id) {
+        if (!in_array($validated['chat_room_id'], $user->chatRooms()->pluck('id')->toArray())) {
             return response()->json([
                 'message' => 'You are not authorized to send message in this chat room',
-            ], 403);
+            ], 401);
         }
 
         $attachmentPath = null;
@@ -118,10 +118,19 @@ class ChatController extends Controller
         $perPage = $validated['per_page'] ?? 50;
         $page = $validated['page'] ?? 1;
 
+        if (!in_array($validated['chat_room_id'], auth()->user()->chatRooms()->pluck('id')->toArray())) {
+            return response()->json([
+                'message' => 'You are not authorized to view this chat room',
+            ], 401);
+        }
+
         $messages = ChatMessage::where('chat_room_id', $validated['chat_room_id'])
             ->with('user:id,name')
             ->orderBy('created_at', 'asc')
             ->paginate($perPage, ['*'], 'page', $page);
+
+        // mark as read
+        ChatMessage::where('chat_room_id', $validated['chat_room_id'])->where('user_id', '!=', auth()->user()->id)->update(['is_read' => true]);
 
         return response()->json($messages);
     }
@@ -129,7 +138,7 @@ class ChatController extends Controller
     public function getUserRooms(Request $request)
     {
         $user = auth()->user();
-        $userType = $request->query('user_type');
+        $userType = $user->account_type;
 
         $query = ChatRoom::query();
 
