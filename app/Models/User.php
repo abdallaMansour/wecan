@@ -134,14 +134,9 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(ChatRoom::class, 'hospital_id');
     }
 
-    public function chatDoctorRooms(): HasMany
+    public function chatRooms(): HasMany
     {
-        return $this->hasMany(ChatRoom::class, 'doctor_id');
-    }
-
-    public function chatPatientRooms(): HasMany
-    {
-        return $this->hasMany(ChatRoom::class, 'patient_id');
+        return $this->hasMany(ChatRoom::class, 'doctor_id')->orWhere('patient_id', $this->id);
     }
 
     public function attachedDoctors(): BelongsToMany

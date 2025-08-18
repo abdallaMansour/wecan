@@ -44,7 +44,7 @@ class ChatController extends Controller
 
         $user = Auth::user();
 
-        if (!in_array($validated['chat_room_id'], $user->chatDoctorRooms()->pluck('id')->toArray()) && !in_array($validated['chat_room_id'], $user->chatPatientRooms()->pluck('id')->toArray())) {
+        if (!in_array($validated['chat_room_id'], $user->chatRooms()->pluck('id')->toArray())) {
             return response()->json([
                 'message' => 'You are not authorized to send message in this chat room',
             ], 401);
@@ -118,7 +118,7 @@ class ChatController extends Controller
         $perPage = $validated['per_page'] ?? 50;
         $page = $validated['page'] ?? 1;
 
-        if (!in_array($validated['chat_room_id'], auth()->user()->chatDoctorRooms()->pluck('id')->toArray()) && !in_array($validated['chat_room_id'], auth()->user()->chatPatientRooms()->pluck('id')->toArray())) {
+        if (!in_array($validated['chat_room_id'], auth()->user()->chatRooms()->pluck('id')->toArray())) {
             return response()->json([
                 'message' => 'You are not authorized to view this chat room',
             ], 401);
@@ -137,26 +137,7 @@ class ChatController extends Controller
 
     public function getUserRooms(Request $request)
     {
-        $user = auth()->user();
-        $userType = $user->account_type;
-
-        $query = ChatRoom::query();
-
-        if ($userType === 'doctor') {
-            $query->where('doctor_id', $user->id);
-        } elseif ($userType === 'patient') {
-            $query->where('patient_id', $user->id);
-        } elseif ($userType === 'hospital') {
-            $query->where('hospital_id', $user->hospital_id);
-        } else {
-            $query->where(function ($q) use ($user) {
-                $q->where('doctor_id', $user->id)
-                    ->orWhere('patient_id', $user->id)
-                    ->orWhere('hospital_id', $user->hospital_id);
-            });
-        }
-
-        $rooms = $query->with(['doctor', 'patient', 'hospital'])->get();
+        $rooms = auth()->user()->chatRooms()->with(['doctor', 'patient', 'hospital'])->get();
 
         return response()->json($rooms);
     }
