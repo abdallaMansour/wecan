@@ -44,7 +44,7 @@ class ChatController extends Controller
 
         $user = Auth::user();
 
-        if (!in_array($validated['chat_room_id'], $user->chatRooms()->pluck('id')->toArray())) {
+        if (!in_array($validated['chat_room_id'], $user->chatDoctorRooms()->pluck('id')->toArray()) && !in_array($validated['chat_room_id'], $user->chatPatientRooms()->pluck('id')->toArray())) {
             return response()->json([
                 'message' => 'You are not authorized to send message in this chat room',
             ], 401);
@@ -118,7 +118,7 @@ class ChatController extends Controller
         $perPage = $validated['per_page'] ?? 50;
         $page = $validated['page'] ?? 1;
 
-        if (!in_array($validated['chat_room_id'], auth()->user()->chatRooms()->pluck('id')->toArray())) {
+        if (!in_array($validated['chat_room_id'], auth()->user()->chatDoctorRooms()->pluck('id')->toArray()) && !in_array($validated['chat_room_id'], auth()->user()->chatPatientRooms()->pluck('id')->toArray())) {
             return response()->json([
                 'message' => 'You are not authorized to view this chat room',
             ], 401);
