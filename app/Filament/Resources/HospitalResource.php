@@ -125,7 +125,7 @@ class HospitalResource extends Resource
                     ->copyable()
                     ->copyMessage(__('dashboard.hospital_url_copied'))
                     ->copyMessageDuration(1500)
-                    ->getStateUsing(fn($record) => env('HOSPITAL_URL') . '/login?hospital=' . $record->id)
+                    ->getStateUsing(fn($record) => env('HOSPITAL_URL') . '/login?hospital=' . $record->key)
                     ->formatStateUsing(fn() => 'Copy')
                     ->disabled(),
 
