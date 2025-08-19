@@ -33,13 +33,14 @@ class Hospital extends Model
     protected static function boot()
     {
         parent::boot();
-    
+
         static::creating(function ($model) {
             $model->key = (string) Str::uuid();
         });
     }
 
-    public function activate() {
+    public function activate()
+    {
         Mail::to($this->email)->send(new HospitalStatusChanged($this));
         $this->update(['account_status' => 'active']);
     }
@@ -51,18 +52,18 @@ class Hospital extends Model
     public function attachedDoctors()
     {
         return $this->belongsToMany(User::class, 'hospital_user_attachments', 'hospital_id', 'user_id')
-                    ->where('account_type', 'doctor')
-                    ->withPivot('status', 'sender_id');
+            ->where('account_type', 'doctor')
+            ->withPivot('status', 'sender_id');
     }
 
     public function attachedPatients()
     {
         return $this->belongsToMany(User::class, 'hospital_user_attachments', 'hospital_id', 'user_id')
-                    ->where('account_type', 'patient')
-                    ->withPivot('status', 'sender_id');
+            ->where('account_type', 'patient')
+            ->withPivot('status', 'sender_id');
     }
     public function user()
-{
-    return $this->belongsTo(User::class);
-}
+    {
+        return $this->hasOne(User::class, 'hospital_id')->where('account_type', 'hospital');
+    }
 }
