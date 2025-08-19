@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\ResponseHelper;
-use App\Models\Hospital;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Models\User;
+use App\Models\Hospital;
+use Illuminate\Http\Request;
+use App\Helpers\ResponseHelper;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Models\ChatRoom; // Add this line to import ChatRoom
 use App\Services\FCMService; // Add this line to import FCMService
 
@@ -133,17 +134,17 @@ class AttachmentController extends Controller
             );
         }
 
-        $user->attachedHospitals()->attach($hospital->id, [
+        DB::table('hospital_user_attachments')->insert([
+            "hospital_id" => $hospital->id,
+            "user_id" => $user->id,
             "status" => "pending",
+            "account_type" => "patient",
             "created_at" => Carbon::now(),
             "sender_id" => $user->id,
         ]);
 
         // Retrieve the created attachment
-        $attachmentData = $user
-            ->attachedHospitals()
-            ->where("hospital_id", $hospital->id)
-            ->first();
+        $attachmentData = DB::table('hospital_user_attachments')->where("hospital_id", $hospital->id)->where("user_id", $user->id)->first();
 
         return ResponseHelper::success(
             "Attachment request sent to hospital",
@@ -151,7 +152,7 @@ class AttachmentController extends Controller
         );
     }
 
-     public function attachPatientToDoctor(Request $request)
+    public function attachPatientToDoctor(Request $request)
     {
         $validatedData = $request->validate([
             "doctor_email" => "required|email",
@@ -168,21 +169,34 @@ class AttachmentController extends Controller
             return ResponseHelper::error("The provided email does not belong to a doctor", 400);
         }
 
+        if ($doctor->account_status !== "active") {
+            return ResponseHelper::error("Doctor is not active", 400);
+        }
+
         if ($patient->account_type !== "patient") {
             return ResponseHelper::error("Only patients can attach to doctors", 403);
         }
 
-        if ($patient->attachedDoctors()->where("doctor_id", $doctor->id)->exists()) {
+        if (DB::table('hospital_user_attachments')->where("doctor_id", $doctor->id)->where("user_id", $patient->id)->exists()) {
             return ResponseHelper::error("You are already attached to this doctor", 400);
         }
 
-        $patient->attachedDoctors()->attach($doctor->id, [
+        DB::table('hospital_user_attachments')->insert([
+            "doctor_id" => $doctor->id,
+            "user_id" => $patient->id,
             "status" => "pending",
             "created_at" => Carbon::now(),
             "sender_id" => $patient->id,
+            'account_type' => 'patient'
         ]);
 
-        $attachmentData = $patient->attachedDoctors()->where("doctor_id", $doctor->id)->first();
+        // $patient->attachedDoctors()->attach($doctor->id, [
+        //     "status" => "pending",
+        //     "created_at" => Carbon::now(),
+        //     "sender_id" => $patient->id,
+        // ]);
+
+        $attachmentData = DB::table('hospital_user_attachments')->where("doctor_id", $doctor->id)->where("user_id", $patient->id)->first();
 
         // Send FCM notification to the doctor
         if ($doctor->fcm_token) {
@@ -336,7 +350,7 @@ class AttachmentController extends Controller
 {
     $validatedData = $request->validate([
         "user_email" => "required|email|exists:users,email",
-        "type" => "required|in:doctor,patient,hospital",
+        // "type" => "required|in:doctor,patient,hospital", // this is not needed
     ]);
     $user = Auth::user();
     $attachedUser = User::where("email", $validatedData["user_email"])->firstOrFail();
@@ -346,15 +360,15 @@ class AttachmentController extends Controller
 
     if ($user->account_type === "hospital") {
         $hospital = Hospital::where("email", $user->email)->firstOrFail();
-        if ($validatedData["type"] === "doctor") {
-            $hospital->attachedDoctors()->updateExistingPivot($attachedUser->id, [
+        if ($attachedUser->account_type === "doctor") {
+            DB::table('hospital_user_attachments')->where("doctor_id", $attachedUser->id)->where("hospital_id", $user->id)->update([
                 "status" => "approved",
                 "updated_at" => Carbon::now(),
             ]);
             $chatRoomName = "Hospital-Doctor Chat";
             $notificationRecipient = $attachedUser;
-        } elseif ($validatedData["type"] === "patient") {
-            $hospital->attachedPatients()->updateExistingPivot($attachedUser->id, [
+        } elseif ($attachedUser->account_type === "patient") {
+            DB::table('hospital_user_attachments')->where("hospital_id", $user->id)->where("user_id", $attachedUser->id)->update([
                 "status" => "approved",
                 "updated_at" => Carbon::now(),
             ]);
@@ -364,10 +378,10 @@ class AttachmentController extends Controller
         ChatRoom::create([
             "name" => $chatRoomName,
             "hospital_id" => $hospital->id,
-            $validatedData["type"] . "_id" => $attachedUser->id,
+            $attachedUser->account_type . "_id" => $attachedUser->id,
         ]);
-    } elseif ($user->account_type === "doctor" && $validatedData["type"] === "patient") {
-        $user->attachedPatients()->updateExistingPivot($attachedUser->id, [
+    } elseif ($user->account_type === "doctor" && $attachedUser->account_type === "patient") {
+        DB::table('hospital_user_attachments')->where("doctor_id", $user->id)->where("user_id", $attachedUser->id)->update([
             "status" => "approved",
             "updated_at" => Carbon::now(),
         ]);
@@ -378,8 +392,8 @@ class AttachmentController extends Controller
             "doctor_id" => $user->id,
             "patient_id" => $attachedUser->id,
         ]);
-    } elseif ($user->account_type === "patient" && $validatedData["type"] === "doctor") {
-        $user->attachedDoctors()->updateExistingPivot($attachedUser->id, [
+    } elseif ($user->account_type === "patient" && $attachedUser->account_type === "doctor") {
+        DB::table('hospital_user_attachments')->where("doctor_id", $attachedUser->id)->where("user_id", $user->id)->update([
             "status" => "approved",
             "updated_at" => Carbon::now(),
         ]);
@@ -390,9 +404,9 @@ class AttachmentController extends Controller
             "doctor_id" => $attachedUser->id,
             "patient_id" => $user->id,
         ]);
-    } elseif ($validatedData["type"] === "hospital") {
+    } elseif ($attachedUser->account_type === "hospital") {
         $hospital = Hospital::where("email", $validatedData["user_email"])->firstOrFail();
-        $user->attachedHospitals()->updateExistingPivot($hospital->id, [
+        DB::table('hospital_user_attachments')->where("doctor_id", $user->id)->where("hospital_id", $hospital->id)->update([
             "status" => "approved",
             "updated_at" => Carbon::now(),
         ]);
@@ -401,7 +415,7 @@ class AttachmentController extends Controller
         ChatRoom::create([
             "name" => $chatRoomName,
             "hospital_id" => $hospital->id,
-            $user->account_type . "_id" => $user->id,
+            "doctor_id" => $user->id,
         ]);
     } else {
         return ResponseHelper::error("Invalid approval request", 403);
@@ -451,20 +465,20 @@ class AttachmentController extends Controller
     // Retrieve the updated attachment
     $updatedAttachment = null;
     if ($user->account_type === "hospital") {
-        $relation = $validatedData["type"] === "doctor" ? "attachedDoctors" : "attachedPatients";
-        $updatedAttachment = $hospital->$relation()->where("user_id", $attachedUser->id)->first();
-    } elseif ($validatedData["type"] === "hospital") {
-        $updatedAttachment = $user->attachedHospitals()->where("hospital_id", $hospital->id)->first();
+        $relation = $attachedUser->account_type === "doctor" ? "attachedDoctors" : "attachedPatients";
+        $updatedAttachment = DB::table('hospital_user_attachments')->where("doctor_id", $user->id)->where("user_id", $attachedUser->id)->first();
+    } elseif ($attachedUser->account_type === "hospital") {
+        $updatedAttachment = DB::table('hospital_user_attachments')->where("doctor_id", $user->id)->where("user_id", $hospital->id)->first();
     } else {
-        $relation = $validatedData["type"] === "doctor" ? "attachedDoctors" : "attachedPatients";
-        $updatedAttachment = $user->$relation()->where($validatedData["type"] . "_id", $attachedUser->id)->first();
+        $relation = $attachedUser->account_type === "doctor" ? "attachedDoctors" : "attachedPatients";
+        $updatedAttachment = $user->$relation()->where($attachedUser->account_type . "_id", $attachedUser->id)->first();
     }
 
     if (!$updatedAttachment) {
         Log::error('Failed to retrieve updated attachment', [
             'user_id' => $user->id,
             'attached_user_id' => $attachedUser->id,
-            'type' => $validatedData["type"]
+            'type' => $attachedUser->account_type
         ]);
         return ResponseHelper::error("Failed to retrieve updated attachment", 500);
     }
@@ -472,7 +486,7 @@ class AttachmentController extends Controller
     Log::info('Attachment approved successfully', [
         'user_id' => $user->id,
         'attached_user_id' => $attachedUser->id,
-        'type' => $validatedData["type"]
+        'type' => $attachedUser->account_type
     ]);
 
     return ResponseHelper::success("Attachment approved successfully", $updatedAttachment);
@@ -489,14 +503,8 @@ public function getAttachments(Request $request)
             return ResponseHelper::error("Hospital not found", 404);
         }
 
-        $doctors = $hospital
-            ->attachedDoctors()
-            ->withPivot("status", "sender_id", "id as attachment_id", "created_at", "updated_at") // Added created_at and updated_at
-            ->get();
-        $patients = $hospital
-            ->attachedPatients()
-            ->withPivot("status", "sender_id", "id as attachment_id", "created_at", "updated_at") // Added created_at and updated_at
-            ->get();
+        $doctors = DB::table('hospital_user_attachments')->where("hospital_id", $hospital->id)->whereNotNull("hospital_user_attachments.doctor_id")->join('users', 'hospital_user_attachments.doctor_id', '=', 'users.id')->get();
+        $patients = DB::table('hospital_user_attachments')->where("hospital_id", $hospital->id)->whereNotNull("hospital_user_attachments.user_id")->join('users', 'hospital_user_attachments.user_id', '=', 'users.id')->get();
 
         Log::info("Doctors:", $doctors->toArray());
         Log::info("Patients:", $patients->toArray());
@@ -509,14 +517,8 @@ public function getAttachments(Request $request)
             ]
         );
     } elseif ($user->account_type === "doctor") {
-        $patients = $user
-            ->attachedPatients()
-            ->withPivot("status", "sender_id", "id as attachment_id", "created_at", "updated_at") // Added created_at and updated_at
-            ->get();
-        $hospitals = $user
-            ->attachedHospitals()
-            ->withPivot("status", "sender_id", "id as attachment_id", "created_at", "updated_at") // Added created_at and updated_at
-            ->get();
+        $patients = DB::table('hospital_user_attachments')->where("doctor_id", $user->id)->whereNotNull("hospital_user_attachments.user_id")->join('users', 'hospital_user_attachments.user_id', '=', 'users.id')->get();
+        $hospitals = DB::table('hospital_user_attachments')->where("doctor_id", $user->id)->whereNotNull("hospital_user_attachments.hospital_id")->join('hospitals', 'hospital_user_attachments.hospital_id', '=', 'hospitals.id')->get();
         return ResponseHelper::success(
             "Attachments retrieved successfully",
             [
@@ -525,14 +527,8 @@ public function getAttachments(Request $request)
             ]
         );
     } elseif ($user->account_type === "patient") {
-        $doctors = $user
-            ->attachedDoctors()
-            ->withPivot("status", "sender_id", "id as attachment_id", "created_at", "updated_at") // Added created_at and updated_at
-            ->get();
-        $hospitals = $user
-            ->attachedHospitals()
-            ->withPivot("status", "sender_id", "id as attachment_id", "created_at", "updated_at") // Added created_at and updated_at
-            ->get();
+        $doctors = DB::table('hospital_user_attachments')->where("user_id", $user->id)->whereNotNull("hospital_user_attachments.doctor_id")->join('users', 'hospital_user_attachments.doctor_id', '=', 'users.id')->get();
+        $hospitals = DB::table('hospital_user_attachments')->where("user_id", $user->id)->whereNotNull("hospital_user_attachments.hospital_id")->join('hospitals', 'hospital_user_attachments.hospital_id', '=', 'hospitals.id')->get();
         return ResponseHelper::success(
             "Attachments retrieved successfully",
             [
