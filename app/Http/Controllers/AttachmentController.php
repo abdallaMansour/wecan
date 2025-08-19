@@ -365,6 +365,8 @@ class AttachmentController extends Controller
                 "status" => "approved",
                 "updated_at" => Carbon::now(),
             ]);
+            $attachedUser->parent_id = $user->id;
+            $attachedUser->save();
             $chatRoomName = "Hospital-Doctor Chat";
             $notificationRecipient = $attachedUser;
         } elseif ($attachedUser->account_type === "patient") {
@@ -372,6 +374,8 @@ class AttachmentController extends Controller
                 "status" => "approved",
                 "updated_at" => Carbon::now(),
             ]);
+            $attachedUser->parent_id = $user->id;
+            $attachedUser->save();
             $chatRoomName = "Hospital-Patient Chat";
             $notificationRecipient = $attachedUser;
         }
@@ -385,6 +389,8 @@ class AttachmentController extends Controller
             "status" => "approved",
             "updated_at" => Carbon::now(),
         ]);
+        $attachedUser->parent_id = $user->id;
+        $attachedUser->save();
         $chatRoomName = "Doctor-Patient Chat";
         $notificationRecipient = $attachedUser;
         ChatRoom::create([
@@ -397,6 +403,9 @@ class AttachmentController extends Controller
             "status" => "approved",
             "updated_at" => Carbon::now(),
         ]);
+
+        $user->parent_id = $attachedUser->id;
+        $user->save();
         $chatRoomName = "Patient-Doctor Chat";
         $notificationRecipient = $attachedUser;
         ChatRoom::create([
@@ -406,10 +415,17 @@ class AttachmentController extends Controller
         ]);
     } elseif ($attachedUser->account_type === "hospital") {
         $hospital = Hospital::where("email", $validatedData["user_email"])->firstOrFail();
-        DB::table('hospital_user_attachments')->where("doctor_id", $user->id)->where("hospital_id", $hospital->id)->update([
+
+        DB::table('hospital_user_attachments')->where(function ($query) use ($user) {
+            $query->where("doctor_id", $user->id)->orWhere("user_id", $user->id);
+        })->where("hospital_id", $hospital->id)->update([
             "status" => "approved",
             "updated_at" => Carbon::now(),
         ]);
+
+        $user->parent_id = $hospital->user?->id;
+        $user->save();
+
         $chatRoomName = "User-Hospital Chat";
         $notificationRecipient = $user;
         ChatRoom::create([
@@ -465,13 +481,23 @@ class AttachmentController extends Controller
     // Retrieve the updated attachment
     $updatedAttachment = null;
     if ($user->account_type === "hospital") {
-        $relation = $attachedUser->account_type === "doctor" ? "attachedDoctors" : "attachedPatients";
-        $updatedAttachment = DB::table('hospital_user_attachments')->where("doctor_id", $user->id)->where("user_id", $attachedUser->id)->first();
-    } elseif ($attachedUser->account_type === "hospital") {
-        $updatedAttachment = DB::table('hospital_user_attachments')->where("doctor_id", $user->id)->where("user_id", $hospital->id)->first();
-    } else {
-        $relation = $attachedUser->account_type === "doctor" ? "attachedDoctors" : "attachedPatients";
-        $updatedAttachment = $user->$relation()->where($attachedUser->account_type . "_id", $attachedUser->id)->first();
+        if ($attachedUser->account_type === "doctor") {
+        $updatedAttachment = DB::table('hospital_user_attachments')->where("hospital_id", $user->hospital_id)->where("doctor_id", $attachedUser->id)->first();
+        } else {
+            $updatedAttachment = DB::table('hospital_user_attachments')->where("hospital_id", $user->hospital_id)->where("user_id", $attachedUser->id)->first();
+        }
+    } elseif ($user->account_type === "doctor") {
+        if ($attachedUser->account_type === "patient") {
+            $updatedAttachment = DB::table('hospital_user_attachments')->where("doctor_id", $user->id)->where("user_id", $attachedUser->id)->first();
+        } else {
+            $updatedAttachment = DB::table('hospital_user_attachments')->where("doctor_id", $user->id)->where("hospital_id", $attachedUser->hospital_id)->first();
+        }
+    } elseif ($user->account_type === "patient") {
+        if ($attachedUser->account_type === "doctor") {
+            $updatedAttachment = DB::table('hospital_user_attachments')->where("user_id", $user->id)->where("doctor_id", $attachedUser->id)->first();
+        } else {
+            $updatedAttachment = DB::table('hospital_user_attachments')->where("user_id", $user->id)->where("hospital_id", $attachedUser->hospital_id)->first();
+        }
     }
 
     if (!$updatedAttachment) {
