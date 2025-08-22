@@ -23,8 +23,8 @@ class ChatController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'doctor_id' => 'required|exists:users,id',
-            'patient_id' => 'required|exists:users,id',
+            'doctor_id' => 'nullable|exists:users,id',
+            'patient_id' => 'nullable|exists:users,id',
             'hospital_id' => 'nullable|exists:hospitals,id',
         ]);
 
