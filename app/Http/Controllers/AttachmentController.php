@@ -68,8 +68,14 @@ class AttachmentController extends Controller
             ]);
 
             try {
-                $response = $this->fcmService->sendNotification(
-                    $hospital->fcm_token,
+                // $response = $this->fcmService->sendNotification(
+                //     $hospital->fcm_token,
+                //     $notificationTitle,
+                //     $notificationBody,
+                //   //  $notificationData
+                // );
+                $response = $this->fcmService->sendTopicNotification(
+                    $hospital->id,
                     $notificationTitle,
                     $notificationBody,
                   //  $notificationData
@@ -216,8 +222,14 @@ class AttachmentController extends Controller
             ]);
 
             try {
-                $response = $this->fcmService->sendNotification(
-                    $doctor->fcm_token,
+                // $response = $this->fcmService->sendNotification(
+                //     $doctor->fcm_token,
+                //     $notificationTitle,
+                //     $notificationBody,
+                //   //  $notificationData
+                // );
+                $response = $this->fcmService->sendTopicNotification(
+                    $doctor->id,
                     $notificationTitle,
                     $notificationBody,
                   //  $notificationData
@@ -300,8 +312,13 @@ class AttachmentController extends Controller
             ]);
 
             try {
-                $response = $this->fcmService->sendNotification(
-                    $patient->fcm_token,
+                // $response = $this->fcmService->sendNotification(
+                //     $patient->fcm_token,
+                //     $notificationTitle,
+                //     $notificationBody
+                // );
+                $response = $this->fcmService->sendTopicNotification(
+                    $patient->id,
                     $notificationTitle,
                     $notificationBody
                 );
@@ -454,8 +471,14 @@ class AttachmentController extends Controller
         ]);
 
         try {
-            $response = $this->fcmService->sendNotification(
-                $notificationRecipient->fcm_token,
+            // $response = $this->fcmService->sendNotification(
+            //     $notificationRecipient->fcm_token,
+            //     $notificationTitle,
+            //     $notificationBody,
+            //   //  $notificationData
+            // );
+            $response = $this->fcmService->sendTopicNotification(
+                $notificationRecipient->id,
                 $notificationTitle,
                 $notificationBody,
               //  $notificationData

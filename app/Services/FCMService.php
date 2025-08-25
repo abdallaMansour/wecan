@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use GuzzleHttp\Client;
@@ -36,6 +37,53 @@ class FCMService
 
         Log::info('Sending FCM notification', [
             'fcm_token' => $fcmToken,
+            'title' => $title,
+            'body' => $body,
+            'data' => $data
+        ]);
+
+        try {
+            $response = $this->client->post($this->firebaseUrl, [
+                'json' => $message,
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->getAccessToken(),
+                    'Content-Type' => 'application/json',
+                ],
+            ]);
+
+            $responseBody = json_decode($response->getBody(), true);
+            Log::info('FCM notification sent successfully', ['response' => $responseBody]);
+
+            return $responseBody;
+        } catch (RequestException $e) {
+            $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);
+            Log::error('FCM notification failed', [
+                'error' => $errorResponse,
+                'exception' => $e->getMessage()
+            ]);
+
+            return $errorResponse;
+        }
+    }
+
+    public function sendTopicNotification($userId, $title, $body, $data = [])
+    {
+        // Ensure $data is always an associative array
+        $data = !empty($data) ? $data : (object)[];
+
+        $message = [
+            'message' => [
+                'topic' => 'fcm_user_' . $userId,
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body,
+                ],
+                'data' => $data,
+            ],
+        ];
+
+        Log::info('Sending FCM notification', [
+            'user_id' => $userId,
             'title' => $title,
             'body' => $body,
             'data' => $data

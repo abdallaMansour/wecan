@@ -75,8 +75,13 @@ class ChatController extends Controller
             // Send FCM notification to each recipient
             foreach ($recipients as $recipient) {
                 if ($recipient->fcm_token && $recipient->id !== $user->id) {
-                    $response = $this->fcmService->sendNotification(
-                        $recipient->fcm_token,
+                    // $response = $this->fcmService->sendNotification(
+                    //     $recipient->fcm_token,
+                    //     'New Message from ' . $user->name,
+                    //     $validated['message']
+                    // );
+                    $response = $this->fcmService->sendTopicNotification(
+                        $recipient->id,
                         'New Message from ' . $user->name,
                         $validated['message']
                     );
