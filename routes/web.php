@@ -5,6 +5,5 @@ use App\Services\FCMService;
 
 Route::get('test-fcm/{id}', function ($id) {
     $fcmService = new FCMService();
-    $fcmService->sendTopicNotification($id, 'Test Title', 'Test Message');
-    return 'Test FCM';
+    return $fcmService->sendTopicNotification($id, 'Test Title', 'Test Message');
 });
