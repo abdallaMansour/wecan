@@ -27,7 +27,7 @@ class AuthController extends Controller
         $validatedData = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
-            'fcm_token' => 'required|string', // Add this line to validate FCM token
+            'fcm_token' => 'nullable|string', // Add this line to validate FCM token
         ]);
 
         $user = User::where('email', $validatedData['email'])->first();
@@ -37,8 +37,10 @@ class AuthController extends Controller
                 $user = Auth::user();
 
                 // Update FCM token
-                $user->fcm_token = $validatedData['fcm_token'];
-                $user->save();
+                if ($validatedData['fcm_token']) {
+                    $user->fcm_token = $validatedData['fcm_token'];
+                    $user->save();
+                }
 
                 $token = $user->createToken('user_api')->plainTextToken;
 
@@ -49,7 +51,7 @@ class AuthController extends Controller
                     'name' => $user->name,
                     'preferred_language' => $user->preferred_language,
                     'account_type' => $user->account_type,
-                    'fcm_token' => $user->fcm_token, // Add FCM token to response data
+                    'fcm_token' => $user->fcm_token ?? null, // Add FCM token to response data
                 ];
 
                 // Add account status if the user is a hospital
