@@ -37,7 +37,7 @@ class AuthController extends Controller
                 $user = Auth::user();
 
                 // Update FCM token
-                if ($validatedData['fcm_token']) {
+                if (isset($validatedData['fcm_token'])) {
                     $user->fcm_token = $validatedData['fcm_token'];
                     $user->save();
                 }
