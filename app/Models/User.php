@@ -89,13 +89,10 @@ class User extends Authenticatable implements FilamentUser
 
     public function getProfilePicturePathAttribute($value)
     {
-        if (array_key_exists('profile_picture', $this->attributes)) {
-            if (Storage::exists($this->attributes['profile_picture'] ?? '')) {
-                return url('/storage/' . $this->attributes['profile_picture']);
-            }
-            return env('HOSPITAL_URL') . '/storage/' . $this->attributes['profile_picture'];
+        if (file_exists(storage_path('app/public/' . $this->attributes['profile_picture'] ?? ''))) {
+            return url('/storage/' . $this->attributes['profile_picture']);
         }
-        return '';
+        return env('HOSPITAL_URL') . '/storage/' . $this->attributes['profile_picture'];
     }
 
     public function doctorChatRooms(): HasMany

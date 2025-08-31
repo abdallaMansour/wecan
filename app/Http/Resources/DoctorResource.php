@@ -17,7 +17,7 @@ class DoctorResource extends JsonResource
         $locale = app()->getLocale();
         return [
             'id' => $this->id,
-            'name' => $this->name,
+            'name' => $locale == 'en' ? $this->name_en : $this->name,
             'contact_number' => $this->contact_number,
             'profession' => $locale == 'en' ? $this->profession_en : $this->profession_ar,
             'hospital' => $locale == 'en' ? $this->hospital_en : $this->hospital_ar,
